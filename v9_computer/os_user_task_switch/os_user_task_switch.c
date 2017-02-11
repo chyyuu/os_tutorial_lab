@@ -1,4 +1,4 @@
-// os_task_switch.c -- using timer interrupt to switch two tasks
+// os_user_task_switch.c -- switching between two user tasks and implement write syscall
 
 // instruction set
 enum {
