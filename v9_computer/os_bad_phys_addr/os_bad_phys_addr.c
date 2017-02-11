@@ -1,4 +1,4 @@
-// os_invalid_instruction.c -- demo how to  capture invalid_instruction  exception/fault
+// os_bad_phys_addr.c -- demo how to capture accessing bad physical address  exception/fault
 
 // instruction set
 enum {

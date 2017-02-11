@@ -38,7 +38,6 @@ int current;
 int in(port)    { asm(LL,8); asm(BIN); }
 out(port, val)  { asm(LL,8); asm(LBL,16); asm(BOUT); }
 ivec(void *isr) { asm(LL,8); asm(IVEC); }
-lvadr()         { asm(LVAD); }
 stmr(int val)   { asm(LL,8); asm(TIME); }
 halt(value)     { asm(LL,8); asm(HALT); }
 
