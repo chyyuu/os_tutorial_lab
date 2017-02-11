@@ -24,14 +24,6 @@ enum {
   IDLE                                                                   // do nothing
 };
 
-// system calls
-enum {
-  S_fork=1, S_exit,   S_wait,   S_pipe,   S_write,  S_read,   S_close,  S_kill,
-  S_exec,   S_open,   S_mknod,  S_unlink, S_fstat,  S_link,   S_mkdir,  S_chdir,
-  S_dup2,   S_getpid, S_sbrk,   S_sleep,  S_uptime, S_lseek,  S_mount,  S_umount,
-  S_socket, S_bind,   S_listen, S_poll,   S_accept, S_connect, 
-};
-
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned int uint;
@@ -67,18 +59,21 @@ main()
    out(1, '\n');
    current = 0;
 
-   stmr(1000);
+   stmr(5000);
    ivec(alltraps);
+  
+   task1_sp = &task1_stack;
+   task1_sp += 50;
+  
+  
+   task1_sp -= 2; *task1_sp = &task1;
+   task1_sp -= 2; *task1_sp = 0; // fault code
+   task1_sp -= 2; *task1_sp = 0; // a  
+   task1_sp -= 2; *task1_sp = 0; // b  
+   task1_sp -= 2; *task1_sp = 0; // c  
+   task1_sp -= 2; *task1_sp = &trapret;  
   
    asm(STI);
   
-   while (current < 1000) {
-     current ++;
-     if (current & 1) 
-         { out(1, '1'); }
-     else 
-         { out(1, '0'); }
-   }
-   out(1, '\n');
-   halt(0);
+   task0();
 }
