@@ -2,7 +2,7 @@
 
 #include "u.h"
 #include "libc.h"
-#include "dir.h"
+#include <dirent.h>
 
 enum {
   BUFSZ   = 16*4096,     // bitmap size
