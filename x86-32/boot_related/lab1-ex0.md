@@ -1,7 +1,7 @@
 # 
 Try below command
 ```
-gcc -g  -m32 -o lab1-ex0.exe lab1-ex0.s
+gcc -g  -m32 -o lab1-ex0.exe lab1-ex0.S
 ```
 Then you will get lab1_ex0.exe
 
@@ -12,4 +12,4 @@ nm
 file
 strace -f ...
 ```
-Try to understand the contents of this .s file. 
+Try to understand the contents of this .S file. 
