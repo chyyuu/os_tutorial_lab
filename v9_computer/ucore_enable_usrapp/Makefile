@@ -3,7 +3,8 @@ GXX		= g++
 PROG		= ucore_enable_usrapp
 USRAPP		= usrapp_exit
 TOOL_DIR	= ../tools
-CFLAGS_32 	= -O3 -m32 -lm
+CFLAGS_32 	= -O3 -m32
+LIBS		= -lm
 CFLAGS 	= -O3
 XCC		= $(TOOL_DIR)/xc
 SIM		= $(TOOL_DIR)/xem
@@ -12,11 +13,11 @@ CHGHEADER	= $(TOOL_DIR)/changeheader
 
 all: $(XCC) $(SIM) $(DIS) $(CHGHEADER) $(PROG) $(USRAPP)
 $(XCC): $(TOOL_DIR)/c.c
-	@$(GCC) $(CFLAGS_32) -o $(XCC) $(TOOL_DIR)/c.c
+	@$(GCC) $(CFLAGS_32) -o $(XCC) $(TOOL_DIR)/c.c $(LIBS)
 $(SIM): $(TOOL_DIR)/em.c
-	@$(GCC) $(CFLAGS_32) -o $(SIM) $(TOOL_DIR)/em.c
+	@$(GCC) $(CFLAGS_32) -o $(SIM) $(TOOL_DIR)/em.c $(LIBS)
 $(DIS): $(TOOL_DIR)/c.c $(TOOL_DIR)/em.c $(TOOL_DIR)/dis.c
-	@$(GCC) $(CFLAGS) -o $(DIS) $(DIS).c
+	@$(GCC) $(CFLAGS) -o $(DIS) $(DIS).c $(LIBS)
 $(CHGHEADER): $(TOOL_DIR)/changeheader.c
 	@$(GXX) $(CFLAGS) -o $(CHGHEADER) $(CHGHEADER).c
 $(PROG): $(PROG).c
