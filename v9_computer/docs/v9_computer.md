@@ -394,7 +394,7 @@ IDLE 	0x......d1	response hardware interrupt (include timer).
 
 ## v9 cpu TLB(页表缓冲)
 
-TLB -- （Translation Lookaside Buffer），也称为快表，旁路快表缓冲，页表缓冲，地址变换高速缓存等。TLB位于v9 CPU中。当v9 CPU要访问一个虚拟地址时，v9 CPU会首先根据虚拟地址的高20位在TLB中查找。如果是表中没有相应的表项，称为TLB miss。出现TLB miss后，v9 CPU需要以虚拟地址的内容为索引，通过访问v9 Computer中的RAM内存中的页表（由OS建立），查找并计算出虚拟地址相应的物理地址(页帧号)，并把此物理地址（页帧号）被存放在一个TLB表项中。这样v9 CPU后续对同一虚拟地址范围（只比较地址的高20位部分，即页号，page number）的访问，就可直接以页号为索引，从v9 CPU内的TLB表项中获取物理地址即可，称为TLB hit。在v9 CPU的TLB中，设置了4个1MB大小页转换表（page translation buffer array）
+TLB -- （Translation Lookaside Buffer），也称为快表，旁路快表缓冲，页表缓冲，地址变换高速缓存，页转换表等。TLB位于v9 CPU中。当v9 CPU要访问一个虚拟地址时，v9 CPU会首先根据虚拟地址的高20位在TLB中查找。如果是表中没有相应的表项，称为TLB miss。出现TLB miss后，v9 CPU需要以虚拟地址的内容为索引，通过访问v9 Computer中的RAM内存中的页表（由OS建立），查找并计算出虚拟地址相应的物理地址(页帧号)，并把此物理地址（页帧号）被存放在一个TLB表项中。这样v9 CPU后续对同一虚拟地址范围（只比较地址的高20位部分，即页号，page number）的访问，就可直接以页号为索引，从v9 CPU内的TLB表项中获取物理地址即可，称为TLB hit。在v9 CPU的TLB中，设置了4个1MB大小页转换表（page translation buffer array）
 
 - kernel read page translation table
 - kernel write page translation table
@@ -472,6 +472,73 @@ PT_ENTRY　=　[高20位：物理页帧地址的高20位（4KB对齐）][低12�
 
 通过LVAD指令可获得访问异常的虚地址并赋值给寄存器a　
 
+###  刷新TLB表
+
+v9的页大小是`4K(2^12)`，页表条目数是`1M(2^20)`，并分为两级。包括核心态读写页表与用户态读写页表（由页表项的标志位确定）。v9中有4个数组指针`trk/twk`和`tru/twu`， 分别指向内核态和用户态的读/写`TLB`，对地址进行虚实转换处理：
+
+    tr/tw[page number]=phy page number //页帧号
+tpages是一个array,保存了所有 tr/tw 中的虚页号,这些虚页号是tr/tw 数组中的 index。
+
+当v9 cpu需要刷新整个TLB时，将执行如下过程：
+​    
+
+    flush()
+    {
+      uint v; 
+      while (tpages) {
+        v = tpage[--tpages];
+        trk[v] = twk[v] = tru[v] = twu[v] = 0;    
+      }
+    }
+
+### 设置TLB表项
+
+当某次访问虚存地址，v9发现有对应的页表项，但没有对应的TLB项时，需要设置TLB表项，将执行如下过程：
+
+```
+uint setpage(uint v, uint p, uint writable, uint userable)
+{
+  if (p >= memsz) { trap = FMEM; vadr = v; return 0; } //物理地址p超过范围，则产生异常
+  p = ((v ^ (mem + p)) & -4096) + 1; //更新p值（v和mem+p的位异或），这样将来通过p^v可以还原出mem+p(即物理地址)
+  if (!trk[v >>= 12]) {              //如果v高20位为index的trk数组项为0,则添加一个TLB项目
+    if (tpages >= TPAGES) flush();
+    tpage[tpages++] = v;
+  }
+  trk[v] = p;
+  twk[v] = writable ? p : 0;
+  tru[v] = userable ? p : 0;
+  twu[v] = (userable && writable) ? p : 0;
+  return p;
+}
+```
+
+### 硬件缓存TLB表项的过程
+
+在访问`虚地址v`时，取其高20位作为index访问`tr/tw`数组（即访问v9 CPU内部的TLB），若不存在则调用`rlook/wlook`（即硬件访问页表项，并缓存到TLB中）
+
+    if (!(p = tr[(v >> 12]) && !(p = rlook(v)))
+`rlook`:（读访问中缓存TLB；写访问中缓存TLB的过程类似）
+
+    uint rlook(uint v)
+    {
+      uint pde, *ppde, pte, *ppte, q, userable;
+      if (!paging) return setpage(v, v, 1, 1); //未开启虚拟内存
+      pde = *(ppde = (uint *)(pdir + (v>>22<<2))); // 取虚地址高10位作为page directory entry（第一级页表，即页目录表）
+      if (pde & PTE_P) { //如果页目录项有效
+        if (!(pde & PTE_A)) *ppde = pde | PTE_A; //置访问位(Access)
+        if (pde >= memsz) { trap = FMEM; vadr = v; return 0; } //产生内存访问异常
+        //取中间10位（第二级页表）
+        pte = *(ppte = (uint *)(mem + (pde & -4096) + ((v >> 10) & 0xffc))); 
+        if ((pte & PTE_P) && ((userable = (q = pte & pde) & PTE_U) || !user)) {
+          if (!(pte & PTE_A)) *ppte = pte | PTE_A; //置访问位(Access)
+          return setpage(v, pte, (pte & PTE_D) && (q & PTE_W), userable); //缓存TLB表项
+        }
+      }
+      //产生内存页读访问异常
+      trap = FRPAGE;
+      vadr = v;
+      return 0;
+    }
 ## 计算机外设
 
 v9 Computer只包含最基本的外设：timer，keyboard/串口, screen/串口，支持中断响应和相关的IO操作。
@@ -489,9 +556,11 @@ v9 Computer只包含最基本的外设：timer，keyboard/串口, screen/串口�
 如果iena(中断使能)，则在获得一个终端输入字符后，会产生FKEYBD中断；时钟到了timeout值会产生时钟中断。
 
 ### 设置timer的timeout
-- val --> a
-- TIME // 如果在内核态，设置timer的timeout为a; 如果在用户态，产生FPRIV异常
+- val --> a  //把timerout值给寄存器a
+- TIME // 如果在内核态，设置timer的timeout阈值为寄存器a的值; 如果在用户态，产生FPRIV异常
 
+
+> 注意： timeout置零时不产生时钟中断。
 
 
 ## 中断/异常机制
@@ -536,7 +605,36 @@ v9 Computer只包含最基本的外设：timer，keyboard/串口, screen/串口�
 - pc跳转中断向量的地址ivec
 
 
+### 时钟中断的过程
+
+1. 通过'TIME'指令设置时钟的time out阈值（>0）
+
+2. 通过'IVEC'指令设置到中断处理例程的起始地址
+
+3. 通过‘STI’指令使能中断
+
+4. 当v9 cpu执行时间超过了time out阈值，就产生中断，ipend |= FTIMER（设置中断类型），0-->iena（屏蔽中断）
+
+5. 跳到中断处理例程进行处理
+
+   ​
+
+## CPU执行控制机制
+
+### CPU跳转机制
+
+v9包括无条件跳转和有条件跳转多种跳转令，若需要跳转，则修改pc寄存器的值，并在使能页机制的情况下：
+
+- 若跳转后的指令与跳转前的指令在同一页表中，则直接执行下一条指令`(goto next)`。
+
+- 若跳转后的位置与跳转前的指令不在同一页表中，则需要重新装填页表 (goto fixpc)。
+
+CPU函数调用机制
+
+v9包括J型指令`(JSR/JSRA)`，在函数调用时，将返回地址、调用参数等依序压栈。在函数调用和返回时再分别通过J型指令跳转到对应地址。
+
 ## 应用二进制接口（application binary interface，ABI）
+
 ABI描述的内容包括：
 
 - 数据类型的大小、布局和对齐;
@@ -614,3 +712,22 @@ struct {
  1. 以funcall程序为例，首先，读入执行文件的代码段＋数据段到内存的底部，并把pc放置到执行文件头中entry设置的内存位置， 设置可用sp为MEM_SZ-FS_SZ - 数据段和程序段（应该还包括BSS段）
  2. 然后从pc指向的起始地址开始执行
  3. 如果碰到异常或中断，则保存中断的地址，并跳到中断向量的地址ivec处执行
+
+### v9加载OS和初始设置
+
+v9模拟器模拟了一块连续的物理内存，缺省128MB。v9模拟器模拟开机后，将把OS文件内容读到它模拟的内存区域中（从零地址开始，顺序读出并写到模拟内存中）。如果有文件系统，则把文件系统（也是一个文件）放到物理内存的最高处，缺省大小为4MB。在文件系统之下是堆栈的栈顶位置，即SP的值。
+
+```
+   +---------------------------+ <--addr=128MB
+   |     File System           |
+   +---------------------------+ <--addr=124MB  <--SP
+   |                           |
+   |       ....                |
+   +---------------------------+ <-- end of OS
+   |         OS                |
+   +---------------------------+ <-- addr=0
+
+```
+
+
+
