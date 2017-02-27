@@ -61,19 +61,8 @@ main()
 
    stmr(5000);
    ivec(alltraps);
-  
-   task1_sp = &task1_stack;
-   task1_sp += 50;
-  
-  
-   task1_sp -= 2; *task1_sp = &task1;
-   task1_sp -= 2; *task1_sp = 0; // fault code
-   task1_sp -= 2; *task1_sp = 0; // a  
-   task1_sp -= 2; *task1_sp = 0; // b  
-   task1_sp -= 2; *task1_sp = 0; // c  
-   task1_sp -= 2; *task1_sp = &trapret;  
-  
+    
    asm(STI);
-  
-   task0();
+
+   while(1) {};
 }
