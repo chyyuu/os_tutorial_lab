@@ -23,4 +23,4 @@ boot.sh
 
 ## The lab lists:
 
-- [[os_helloworld]]
+- [os_helloworld](os_helloworld)
