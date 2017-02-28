@@ -19,3 +19,8 @@ clean.sh
 boot.sh
 # then you will see the xv6 os running
 ```
+
+
+## The lab lists:
+
+- [[os_helloworld]]
