@@ -6,7 +6,8 @@ We use&modify them as some homeworks of our OS course.
 ## Memory
  - [ostep1-relocation.md](ostep1-relocation.md) 
  - ostep2-segmentation.md
- - ostep3-malloc.md
+ - [ostep3-malloc.md](ostep3-malloc.md)
+  - [ostep3-malloc.py](ostep3-malloc.py)
  - ostep4-paging-linear-translate.md
  - ostep5-paging-multilevel-translate.md
  - ostep6-paging-policy.md
