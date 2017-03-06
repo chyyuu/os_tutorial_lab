@@ -4,7 +4,7 @@ These resources are from [Operating Systems: Three Easy Pieces](http://pages.cs.
 We use&modify them as some homeworks of our OS course.
 
 ## Memory
- - ostep1-relocation.md 
+ - [ostep1-relocation.md](ostep1-relocation.md) 
  - ostep2-segmentation.md
  - ostep3-malloc.md
  - ostep4-paging-linear-translate.md
