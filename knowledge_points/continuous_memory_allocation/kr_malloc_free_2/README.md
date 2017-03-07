@@ -9,6 +9,7 @@ CONTEXT: This was in the context of looking at Google's TCMalloc and thinking ab
 NOTES: I get memory from the system using the standard malloc call in the C library and then manage that memory myself.  But if for some reason you wanted to bypass malloc entirely, see the Malloc Tutorial below.
 
 REFERENCES:
-K&R: http://en.wikipedia.org/wiki/File:The_C_Programming_Language_cover.svg,
-Malloc Tutorial: http://www.inf.udec.cl/~leo/Malloc_tutorial.pdf,
-For further pondering, see http://www.stanford.edu/~hlitz/papers/asplos-litz.pdf
+
+- K&R: http://en.wikipedia.org/wiki/File:The_C_Programming_Language_cover.svg,
+- Malloc Tutorial: http://www.inf.udec.cl/~leo/Malloc_tutorial.pdf,
+- For further pondering, see http://www.stanford.edu/~hlitz/papers/asplos-litz.pdf

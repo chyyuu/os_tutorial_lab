@@ -1,7 +1,9 @@
 
-This program, malloc.py, allows you to see how a simple memory allocator
+
+This program, [ostep3-malloc.py](./ostep3-malloc.py), allows you to see how a simple memory allocator
 works. Here are the options that you have at your disposal:
 
+```
   -h, --help            show this help message and exit
   -s SEED, --seed=SEED  the random seed
   -S HEAPSIZE, --size=HEAPSIZE
@@ -26,14 +28,14 @@ works. Here are the options that you have at your disposal:
   -A OPSLIST, --allocList=OPSLIST
                         instead of random, list of ops (+10,-0,etc)
   -c, --compute         compute answers for me
-
+```
 One way to use it is to have the program generate some random allocation/free
 operations and for you to see if you can figure out what the free list would
 look like, as well as the success or failure of each operation. 
 
 Here is a simple example:
-
-prompt> ./malloc.py -S 100 -b 1000 -H 4 -a 4 -l ADDRSORT -p BEST -n 5 
+```
+prompt> ./ostep3-malloc.py -S 100 -b 1000 -H 4 -a 4 -l ADDRSORT -p BEST -n 5 
 
 ptr[0] = Alloc(3)  returned ?
 List?
@@ -49,7 +51,7 @@ List?
 
 ptr[2] = Alloc(8)  returned ?
 List?
-
+```
 
 In this example, we specify a heap of size 100 bytes (-S 100), starting at
 address 1000 (-b 1000). We specify an additional 4 bytes of header per
@@ -62,8 +64,8 @@ out what each allocation/free operation returns, as well as the state of the
 free list after each operation.
 
 Here we look at the results by using the -c option.
-
-prompt> ./malloc.py -S 100 -b 1000 -H 4 -a 4 -l ADDRSORT -p BEST -n 5 -c
+```
+prompt> ./ostep3-malloc.py -S 100 -b 1000 -H 4 -a 4 -l ADDRSORT -p BEST -n 5 -c
 
 ptr[0] = Alloc(3)  returned 1004 (searched 1 elements)
 Free List [ Size 1 ]:  [ addr:1008 sz:92 ]
@@ -85,7 +87,7 @@ following information:
 
 ptr[0] = Alloc(3)  returned 1004 (searched 1 elements)
 Free List [ Size 1 ]:  [ addr:1008 sz:92 ]
-
+```
 Because the initial state of the free list is just one large element, it is
 easy to guess that the Alloc(3) request will succeed. Further, it will just
 return the first chunk of memory and make the remainder into a free list. The
@@ -96,17 +98,17 @@ starting at 1008.
 The next operation is a Free, of "ptr[0]" which is what stores the results of
 the previous allocation request. As you can expect, this free will succeed
 (thus returning "0"), and the free list now looks a little more complicated:
-
+```
 Free(ptr[0]) returned 0
 Free List [ Size 2 ]:  [ addr:1000 sz:8 ] [ addr:1008 sz:92 ]
-
+```
 Indeed, because we are NOT coalescing the free list, we now have two elements
 on it, the first being 8 bytes large and holding the just-returned space, and
 the second being the 92-byte chunk. 
 
 We can indeed turn on coalescing via the -C flag, and the result is:
-
-prompt> ./malloc.py -S 100 -b 1000 -H 4 -a 4 -l ADDRSORT -p BEST -n 5 -c -C
+```
+prompt> ./ostep3-malloc.py -S 100 -b 1000 -H 4 -a 4 -l ADDRSORT -p BEST -n 5 -c -C
 ptr[0] = Alloc(3)  returned 1004 (searched 1 elements)
 Free List [ Size 1 ]:  [ addr:1008 sz:92 ]
 
@@ -121,7 +123,7 @@ Free List [ Size 1 ]:  [ addr:1000 sz:100 ]
 
 ptr[2] = Alloc(8)  returned 1004 (searched 1 elements)
 Free List [ Size 1 ]:  [ addr:1012 sz:88 ]
-
+```
 You can see that when the Free operations take place, the free list is
 coalesced as expected.
 
