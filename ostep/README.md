@@ -5,30 +5,29 @@ We use&modify them as some homeworks of our OS course.
 
 ## Memory
  - [ostep1-relocation.md](ostep1-relocation.md) 
- - ostep2-segmentation.md
+ - [ostep2-segmentation.md](ostep2-segmentation.md)
  - [ostep3-malloc.md](ostep3-malloc.md)
   - [ostep3-malloc.py](ostep3-malloc.py)
- - ostep4-paging-linear-translate.md
- - ostep5-paging-multilevel-translate.md
- - ostep6-paging-policy.md
+ - [ostep4-paging-linear-translate.md](ostep4-paging-linear-translate.md)
+ - [ostep5-paging-multilevel-translate.md](ostep5-paging-multilevel-translate.md)
+ - [ostep6-paging-policy.md](ostep6-paging-policy.md)
 
 ## process
- - ostep7-process-run.md
+ - [ostep7-process-run.md](ostep7-process-run.md)
 
 ## scheduling
- - ostep8-scheduler.md
- - ostep9-mlfq.md
- - ostep10-lottery.md
+ - [ostep8-scheduler.md](ostep8-scheduler.md)
+ - [ostep9-mlfq.md](ostep9-mlfq.md)
+ - [ostep10-lottery.md](ostep10-lottery.md)
 
 ## sync/mutex
- - ostep11-threadintro/race.md
- - ostep12-threadlock/locks.md
+ - [ostep11-threadintro/race.md](ostep11-threadintro/race.md)
+ - [ostep12-threadlock/locks.md](ostep12-threadlock/locks.md)
 
 ## file system
- - ostep13-vsfs.md
- - ostep14-afs.md                             
+ - [ostep13-vsfs.md](ostep13-vsfs.md)
+ - [ostep14-afs.md](ostep14-afs.md)
 
 ## disk
- - ostep15-disk/disk.md
- - ostep16-raid.md
-
+ - [ostep15-disk/disk.md](ostep15-disk/disk.md)
+ - [ostep16-raid.md](ostep16-raid.md)
