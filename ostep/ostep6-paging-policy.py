@@ -116,6 +116,9 @@ else:
     elif policy == 'MRU':
         leftStr = 'LRU'
         riteStr = 'MRU'
+    elif policy == 'LFU':
+        leftStr = 'LRU'
+        riteStr = 'MRU'
     elif policy == 'OPT' or policy == 'RAND' or policy == 'UNOPT' or policy == 'CLOCK':
         leftStr = 'Left '
         riteStr = 'Right'
@@ -125,6 +128,11 @@ else:
 
     # track reference bits for clock
     ref   = {}
+
+    # freq num for LFU
+    freq = []
+    for idx in range(len(addrList)):
+        freq.append(1000) # max freq for each item
 
     cdebug = False
 
@@ -136,9 +144,11 @@ else:
         try:
             idx = memory.index(n)
             hits = hits + 1
-            if policy == 'LRU' or policy == 'MRU':
+            if policy == 'LRU' or policy == 'MRU' or policy == 'LFU':
                 update = memory.remove(n)
                 memory.append(n) # puts it on MRU side
+                if policy == 'LFU':
+                   freq[n]+=1;
         except:
             idx = -1
             miss = miss + 1
@@ -153,6 +163,22 @@ else:
                     victim = memory.pop(0)
                 elif policy == 'MRU':
                     victim = memory.pop(count-1)
+                elif policy == 'LFU':
+                    min_freq=min(freq)
+                    #print 'freq ',freq, 'min ', min_freq
+                    print 'LFU mem ',memory
+                    find = 0
+                    memidx=0
+                    for memidx in range(len(memory)):
+                        if freq[memory[memidx]] == min_freq:
+                           freq[memory[memidx]]=1000
+                           victim = memory.pop(memidx)
+                           find = 1
+                           break
+
+                    if find == 0:
+                        print 'ERROR'
+                                            
                 elif policy == 'RAND':
                     victim = memory.pop(int(random.random() * count))
                 elif policy == 'CLOCK':
@@ -237,6 +263,10 @@ else:
 
             # now add to memory
             memory.append(n)
+            if policy == 'LFU':
+                # print 'LFU n ',n
+                freq[n]=1;
+
             if cdebug:
                 print 'LEN (a)', len(memory)
             if victim != -1:
@@ -255,6 +285,7 @@ else:
 
         if notrace == False:
             print 'Access: %d  %s %s -> %12s <- %s Replaced:%s [Hits:%d Misses:%d]' % (n, hfunc(idx), leftStr, memory, riteStr, vfunc(victim), hits, miss)
+            print 'FREQ ',freq
         addrIndex = addrIndex + 1
         
     print ''
