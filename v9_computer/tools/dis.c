@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
 		int imme = (int)(((unsigned int)(dat[i]))>>8);
 		if((unsigned char)(inst)<=0xd1) { //IDLE=0xd1
 			fprintf(fo, "%3d: %08x: %08x: %c%c%c%c 0x%06x (D%4d)",
-					i + 1, i * 4, dat[i],
+					i , i * 4, dat[i],
 					ops[inst * 5], ops[inst * 5 + 1], ops[inst * 5 + 2], ops[inst * 5 + 3],
 					imme, dat[i] >> 8
 			);
@@ -187,6 +187,11 @@ int main(int argc, char** argv) {
 		if (ops[inst*5] == 'M' && ops[inst*5+1] == 'S' && ops[inst*5+2] == 'E' && ops[inst*5+3] == 'T') {
 			fprintf(fo, " # memset(char *ra, char rb, len=rc)\n"); continue;
 		}
+	       if (ops[inst*5] == 'S' && ops[inst*5+1] == 'U' && ops[inst*5+2] == 'B' && ops[inst*5+3] == 'L') {
+			fprintf(fo, " # ra=ra-sp[0x%x=%d]\n",  imme,  imme); continue;
+		}
+
+
 		if (inst >= 0x4f && inst <= 0x83) {
 			if (inst-0x4f < 4) {
 				switch (inst-0x4f) {
@@ -346,6 +351,7 @@ int main(int argc, char** argv) {
 				case 'B' : fprintf(fo, "uchar("); break;
 				case 'D' : fprintf(fo, "double(");break;
 				case 'F' : fprintf(fo, "float("); break;
+			        //case 'L' : fprintf(fo, "sp[0x%x=%d])",   imme, imme); break;
 			}
 			switch (ops[opi]) {
 				case 'L' : fprintf(fo, "sp[0x%x=%d])",   imme, imme); break;
