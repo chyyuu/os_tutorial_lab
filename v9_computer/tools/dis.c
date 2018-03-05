@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
 		int imme = (int)(((unsigned int)(dat[i]))>>8);
 		if((unsigned char)(inst)<=0xd1) { //IDLE=0xd1
 			fprintf(fo, "%3d: %08x: %08x: %c%c%c%c 0x%06x (D%4d)",
-					i + 1, i * 4, dat[i],
+					i , i * 4, dat[i],
 					ops[inst * 5], ops[inst * 5 + 1], ops[inst * 5 + 2], ops[inst * 5 + 3],
 					imme, dat[i] >> 8
 			);
@@ -131,9 +131,9 @@ int main(int argc, char** argv) {
 			fprintf(fo, " # Cond goto label%d", ++label_ct);
 		else if (ops[inst*5] == 'J') {
 		        if(ops[inst*5+1] == 'M') {
-			        fprintf(fo, " # Jmp label%d 0x%x=pc+%d", ++label_ct, (i<<2)+imme, dat[i]>>8);
+			        fprintf(fo, " # Jmp label%d 0x%x=pc+%d", ++label_ct, ((i+1)*4)+(int)(dat[i]>>8), dat[i]>>8);
 			    } else if(ops[inst*5+1] == 'S') {
-			        fprintf(fo, " # Call label%d 0x%x=pc+%d", ++label_ct, (i<<2)+imme, dat[i]>>8);
+			        fprintf(fo, " # Call label%d 0x%x=pc+%d", ++label_ct, ((i+1)*4)+(int)(dat[i]>>8), dat[i]>>8);
 			    }
 		}	    
 		if (!cmt) {
@@ -187,6 +187,14 @@ int main(int argc, char** argv) {
 		if (ops[inst*5] == 'M' && ops[inst*5+1] == 'S' && ops[inst*5+2] == 'E' && ops[inst*5+3] == 'T') {
 			fprintf(fo, " # memset(char *ra, char rb, len=rc)\n"); continue;
 		}
+	       if (ops[inst*5] == 'S' && ops[inst*5+1] == 'U' && ops[inst*5+2] == 'B' && ops[inst*5+3] == 'L') {
+			fprintf(fo, " # ra=ra-sp[0x%x=%d]\n",  imme,  imme); continue;
+		}
+	       if (ops[inst*5] == 'A' && ops[inst*5+1] == 'D' && ops[inst*5+2] == 'D' && ops[inst*5+3] == 'I') {
+			fprintf(fo, " # ra=ra + %x=%d\n",  imme,  imme); continue;
+		}
+
+
 		if (inst >= 0x4f && inst <= 0x83) {
 			if (inst-0x4f < 4) {
 				switch (inst-0x4f) {
@@ -317,7 +325,7 @@ int main(int argc, char** argv) {
 			}
 			switch (ops[opi]) {
 				case 'L' : fprintf(fo, "sp[0x%x=%d])",  imme,  imme); break;
-				case 'G' : fprintf(fo, "gaddr[0x%x=%d=pc+%d])", (i<<2)+imme, (i<<2)+imme, imme); break;
+				case 'G' : fprintf(fo, "gaddr[0x%x=%d=pc+%d])", ((i+1)<<2)+imme, ((i+1)<<2)+imme, imme); break;
 				case 'X' : 
 					if (opi == inst*5+1)
 						fprintf(fo, "ra[0x%x=%d])", imme, imme);
@@ -346,10 +354,11 @@ int main(int argc, char** argv) {
 				case 'B' : fprintf(fo, "uchar("); break;
 				case 'D' : fprintf(fo, "double(");break;
 				case 'F' : fprintf(fo, "float("); break;
+			        //case 'L' : fprintf(fo, "sp[0x%x=%d])",   imme, imme); break;
 			}
 			switch (ops[opi]) {
 				case 'L' : fprintf(fo, "sp[0x%x=%d])",   imme, imme); break;
-				case 'G' : fprintf(fo, "gaddr[0x%x=%d=pc+%d])", (i<<2)+imme, (i<<2)+imme, imme); break;
+				case 'G' : fprintf(fo, "gaddr[0x%x=%d=pc+%d])", ((i+1)<<2)+imme, ((i+1)<<2)+imme, imme); break;
 				case 'X' : 
 					if (opi == inst*5+1)
 						fprintf(fo, "ra[0x%x=%d])", imme, imme);
@@ -389,23 +398,23 @@ int main(int argc, char** argv) {
 	}
 	fprintf(fo, "=======================================================================\n");
 	fprintf(fo, "Data Segment\n");
-	fprintf(fo, "Address     Hex									 | Char\n");
+	fprintf(fo, "Address     Hex (hi>-->low)									 | Char\n");
 	for (i = c_sz ; i < d_sz ; i += 4) {
 		fprintf(fo, "0x%08x	", i<<2);
 		for (j = i ; j < i+4 ; j++)
 			if (j < d_sz) 
 				fprintf(fo, "%02x %02x %02x %02x	", 
-					dat[j]&255, (dat[j]>>8)&255, (dat[j]>>16)&255, dat[j]>>24) ;
+					(dat[j]>>24)&255, (dat[j]>>16)&255, (dat[j]>>8)&255, dat[j]&255) ;
 			else
 				fprintf(fo, "                   	");
 		fprintf(fo, " | ");
 		for (j = i ; j < i+4 ; j++)
 			if (j < d_sz)
 				fprintf(fo, "%c%c%c%c", 
-					showChar(dat[j]&255),
-					showChar((dat[j]>>8)&255),
+					showChar((dat[j]>>24)&255),
 					showChar((dat[j]>>16)&255),
-					showChar(dat[j]>>24)
+					showChar((dat[j]>>8)&255),
+					showChar(dat[j]&255)
 				);
 			else
 				fprintf(fo, "    ");
