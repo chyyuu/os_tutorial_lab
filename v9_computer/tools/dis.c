@@ -404,14 +404,14 @@ int main(int argc, char** argv) {
 		for (j = i ; j < i+4 ; j++)
 			if (j < d_sz) 
 				fprintf(fo, "%02x %02x %02x %02x	", 
-					dat[j]>>24, (dat[j]>>16)&255, (dat[j]>>8)&255, dat[j]&255) ;
+					(dat[j]>>24)&255, (dat[j]>>16)&255, (dat[j]>>8)&255, dat[j]&255) ;
 			else
 				fprintf(fo, "                   	");
 		fprintf(fo, " | ");
 		for (j = i ; j < i+4 ; j++)
 			if (j < d_sz)
 				fprintf(fo, "%c%c%c%c", 
-					showChar(dat[j]>>24),
+					showChar((dat[j]>>24)&255),
 					showChar((dat[j]>>16)&255),
 					showChar((dat[j]>>8)&255),
 					showChar(dat[j]&255)
