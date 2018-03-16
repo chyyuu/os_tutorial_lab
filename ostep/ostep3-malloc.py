@@ -213,7 +213,7 @@ else:
                 p[c] = ptr
             print 'ptr[%d] = Alloc(%d)' % (c, size),
             if options.solve == True:
-                print ' returned %d (searched %d elements)' % (ptr, cnt)
+                print ' returned %d (searched %d elements)' % (ptr + options.headerSize, cnt)
             else:
                 print ' returned ?'
             c += 1
