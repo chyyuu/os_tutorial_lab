@@ -1,0 +1,68 @@
+$ qemu-system-riscv64 -monitor stdio
+QEMU 4.1.0 monitor - type 'help' for more information
+(qemu) x /10i 0x1000
+0x0000000000001000:  00000297          auipc           t0,0            # 0x1000
+0x0000000000001004:  02028593          addi            a1,t0,32
+0x0000000000001008:  f1402573          csrrs           a0,mhartid,zero
+0x000000000000100c:  0182b283          ld              t0,24(t0)
+0x0000000000001010:  00028067          jr              t0
+0x0000000000001014:  0000              illegal         
+0x0000000000001016:  0000              illegal         
+0x0000000000001018:  0000              illegal         
+0x000000000000101a:  8000              illegal         
+0x000000000000101c:  0000              illegal         
+
+$cd /media/chyyuu/ca8c7ba6-51b7-41fc-8430-e29e31e5328f/thecode/rust/rCore_tutorial/os
+$git checkout ch2-pa4
+$cargo build
+$qemu-system-riscv64  --machine virt  --nographic  --bios default -S -s
+
+$riscv64-unknown-elf-gdb target/riscv64imac-unknown-none-elf/debug/os
+(gdb) tar remote :1234
+0x0000000000001000 in ?? ()
+(gdb) x /10i 0x1000
+=> 0x1000:	auipc	t0,0x0
+   0x1004:	addi	a1,t0,32
+   0x1008:	csrr	a0,mhartid
+   0x100c:	ld	t0,24(t0)
+   0x1010:	jr	t0
+   0x1014:	unimp
+
+(gdb) x /10x 0x1000
+0x1000:	0x00000297	0x02028593	0xf1402573	0x0182b283
+0x1010:	0x00028067	0x00000000	0x80000000	0x00000000
+0x1020:	0xedfe0dd0	0x260d0000
+(gdb) si
+0x0000000000001004 in ?? ()
+
+...
+pc             0x1010	0x1010
+(gdb) i r t0
+t0             0x80000000	2147483648
+
+(gdb) si
+0x0000000080000000 in ?? ()
+(gdb) x /10i 
+   0x1028:	unimp
+   0x102a:	fld	fs0,48(s0)
+   0x102c:	unimp
+   0x102e:	0xb00b
+   0x1032:	fld	fs0,16(s0)
+   0x1034:	unimp
+   0x1036:	addi	s0,sp,160
+   0x1038:	unimp
+   0x103a:	addi	s0,sp,256
+   0x103c:	unimp
+(gdb) x /10i  $pc
+=> 0x80000000:	csrr	a6,mhartid
+   0x80000004:	bgtz	a6,0x80000108
+   0x80000008:	auipc	t0,0x0
+   0x8000000c:	addi	t0,t0,1032
+   0x80000010:	auipc	t1,0x0
+   0x80000014:	addi	t1,t1,-16
+   0x80000018:	sd	t1,0(t0)
+   0x8000001c:	auipc	t0,0x0
+   0x80000020:	addi	t0,t0,1020
+   0x80000024:	ld	t0,0(t0)
+
+
