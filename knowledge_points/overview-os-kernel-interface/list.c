@@ -1,25 +1,21 @@
 
 // list.c: list file names in the current directory
 
-#include "kernel/types.h"
-#include "user/user.h"
+#include <dirent.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <stdio.h>
 
-struct dirent {
-  ushort inum;
-  char name[14];
-};
+main() {
+  DIR *dir;
+  struct dirent *entry;
 
-int
-main()
-{
-  int fd;
-  struct dirent e;
-
-  fd = open(".", 0);
-  while(read(fd, &e, sizeof(e)) == sizeof(e)){
-    if(e.name[0] != '\0'){
-      printf("%s\n", e.name);
-    }
+  if ((dir = opendir(".")) == NULL)
+    perror("opendir() error");
+  else {
+    puts("contents of root:");
+    while ((entry = readdir(dir)) != NULL)
+      printf("  %s\n", entry->d_name);
+    closedir(dir);
   }
-  exit();
 }
